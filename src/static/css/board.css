@@ -1,0 +1,63 @@
+body {
+    --cell-width: 1rem;
+    --cell-height: 1rem;
+}
+
+#board-container {
+    width: 100%;
+    height: 100%;
+}
+
+#board {
+    height: 100%;
+    width: 100%;
+    container-type: size;
+    background-color: #181818;
+    table-layout: fixed;
+    border-spacing: 0;
+}
+
+.flex {
+    display: flex;
+}
+
+.bingo-cell {
+    height: var(--cell-height);
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid black;
+    text-align: center;
+    padding: 0rem 0.2rem;
+    display: table-cell;
+    text-align: center;
+    vertical-align: top;
+    z-index: 0;
+    position: relative;
+}
+
+.bingo-col-header-row {
+    height: 0.5rem;
+    overflow: hidden;
+}
+
+.bingo-row-header {
+    width: 1rem;
+    border: 1px solid black;
+    background-color: rgb(25, 25, 71);
+    font-size: small;
+    text-align: center;
+}
+
+.bingo-col-header {
+    background-color: rgb(25, 25, 71);
+    text-align: center;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid black;
+    text-align: center;
+    display: table-cell;
+    text-align: center;
+    z-index: 0;
+    position: relative;
+    padding: 0px;
+}

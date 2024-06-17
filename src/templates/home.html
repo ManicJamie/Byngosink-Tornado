@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <title>ByngoSink</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content="Byngosink" />
+        <meta property="og:description" content="Goal syncing on arbitrary boards" />
+        <meta property="og:url" content="https://byngos.ink/" />
+        <meta property="og:image" content="https://byngos.ink/favicon.ico" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="stylesheet" type="text/css" media="screen" href="{{static_url("css/main.css")}}" />
+        <link rel="stylesheet" type="text/css" media="screen" href="{{static_url("css/index.css")}}" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+        <script src="{{static_url("js/lib/reconnecting-websocket-min.js")}}"></script>
+        <script src="{{static_url("js/main.js")}}"></script>
+        <script src="{{static_url("js/index.js")}}"></script>
+    </head>
+    <body>
+        <div id="container" class="container-fluid">
+            <div id="error-display" hidden></div>
+            <header class="rounded bordered">
+                <div class="flex" style="row-gap: 0">
+                    <h1>ByngoSink</h1>
+                    <p style="margin: 0; height: 2em">Goal syncing on arbitrary boards</p>
+                </div>
+            </header>
+            <main>
+                <div id="room-list-outer" class="rounded bordered">
+                    <div class="window-header">Room List</div>
+                    <div id="room-list-inner">
+                        <table id="room-table">
+                            <thead>
+                                <tr>
+                                    <td>Room</td>
+                                    <td>Game</td>
+                                    <td>Variant</td>
+                                    <td>Board</td>
+                                    <td>Count</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for room in roomList %}
+                                <tr>
+                                    <td><a href="/rooms/{{room.short_uuid}}">{{room.name}}</td>
+                                    <td>{{"game"}}</td>
+                                    <td>{{"name"}}</td>
+                                    <td>{{"type"}}</td>
+                                    <td>{{len(room.users)}}</td>
+                                </tr>
+                                {% end %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <form id="room-creation-outer" class="rounded bordered" action="/rooms" method="post">
+                    <div class="window-header">New Room</div>
+                    <div id="room-creation-inner" class="flex-vertical">
+                        <div class="flex fill">
+                            <label>Room Name:</label>
+                            <input type="text" name="room_name" class="creation-width rounded" />
+                        </div>
+                        <div class="flex fill">
+                            <label>Username:</label>
+                            <input type="text" name="user_name" class="creation-width rounded" />
+                        </div>
+                        <div class="flex fill">
+                            <label>Password:</label>
+                            <input type="text" name="password" class="creation-width rounded" />
+                        </div>
+                        {% include "components/board_creation.html" %}
+                        <input id="create_room" type="submit" value="Create Room" />
+                    </div>
+                </form>
+            </main>
+            <footer class="flex">
+                <div class="flex">
+                    <a href="https://github.com/ManicJamie/ByngoSink">github</a>
+                    about
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>

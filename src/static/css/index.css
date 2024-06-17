@@ -1,0 +1,29 @@
+@media screen and (max-width: 800px) {
+  main {
+    flex-direction: column-reverse;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  #room-creation-outer {
+    width: 100% !important;
+    max-width: 30em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #room-list-outer {
+    height: auto;
+  }
+
+  footer {
+    justify-content: center;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  #container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}

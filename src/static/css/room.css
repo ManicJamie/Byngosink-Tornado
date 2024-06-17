@@ -1,0 +1,285 @@
+body {
+    --cell-width: 1rem;
+    --cell-height: 1rem;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+}
+
+#container {
+    width: 100%;
+    max-width: none;
+    padding: 0.5rem;
+}
+
+header {
+    display: flex;
+    flex-direction: column;
+}
+
+h1 {
+    font-size: 2rem !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0;
+    line-height: 1rem !important;
+    height: 2rem;
+}
+
+#Exit {
+    margin-left: auto;
+    color: #272b30;
+}
+
+h2 {
+    font-size: 1.25rem !important;
+    margin: 0rem !important;
+}
+
+#titleBar {
+    display: flex;
+}
+
+#board-container {
+    aspect-ratio: 1.2 / 1;
+    height: 55rem;
+}
+
+#board {
+    height: 100%;
+    width: 100%;
+    container-type: size;
+    background-color: #181818;
+    table-layout: fixed;
+}
+
+.bingo-col-header {
+    background-color: rgb(25, 25, 71);
+    text-align: center;
+    height: var(--cell-height);
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid black;
+    text-align: center;
+    display: table-cell;
+    text-align: center;
+    vertical-align: top;
+    z-index: 0;
+    position: relative;
+    padding: 0px;
+}
+
+.header-container {
+    left: 0px;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    width: auto;
+    height: auto;
+    z-index: 5;
+    position: absolute;
+    border: 1px solid black;
+    padding: 0rem 0.2rem;
+}
+
+.bingo-col-header-row {
+    height: 0.5rem;
+}
+
+.bingo-row-header {
+    width: 1rem;
+    border: 1px solid black;
+    background-color: rgb(25, 25, 71);
+    font-size: small;
+    text-align: center;
+}
+
+.bingo-cell {
+    height: var(--cell-height);
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid black;
+    text-align: center;
+    padding: 0rem 0.2rem;
+    display: table-cell;
+    text-align: center;
+    vertical-align: top;
+    z-index: 0;
+    position: relative;
+}
+
+.bingo-cell-content {
+    font-size: 0.65rem;
+    width: inherit;
+    height: inherit;
+    margin-top: 0px;
+    overflow: visible;
+    text-shadow: 1px 1px 2px #000000;
+}
+
+.header-content {
+    font-size: 1rem;
+    width: inherit;
+    height: inherit;
+    margin-top: 0px;
+    overflow: visible;
+    text-shadow: 1px 1px 2px #000000;
+    position: absolute;
+    text-align: center;
+    width: 100%;
+}
+
+.bingo-shadow {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+
+    z-index: 2;
+}
+
+.bingo-shadow:hover {
+    box-shadow: inset 0px 0px 50px rgba(0, 0, 100, 0.3);
+}
+
+.svg-container {
+    position: relative;
+    width: 0;
+    height: 0;
+    left: -5px;
+    z-index: -1;
+}
+
+.team-wrapper {
+    width: fit-content;
+    padding: 0.5rem;
+    min-width: 5rem;
+}
+
+.team-box {
+    width: auto;
+    height: auto;
+    text-shadow: 1px 1px 2px #000000;
+    padding: 0.2rem;
+    line-height: 1rem;
+    border-radius: 0.3em;
+}
+
+.team-member {
+    margin: 0;
+}
+
+#teamDialogButton {
+    border-radius: 0.25em;
+    justify-self: end;
+}
+
+#teamDialog {
+    padding: 0rem;
+}
+
+#teamDialog-wrapper {
+    position: relative;
+    top: 0px;
+    left: 0px;
+    width: 50vw;
+    height: 50vh;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    gap: 1rem;
+}
+
+#room {
+    display: flex;
+    flex-wrap: nowrap;
+    padding-top: 0rem;
+}
+
+#sidebar {
+    flex-direction: column;
+    display: flex;
+    flex-grow: 1;
+    flex-wrap: nowrap;
+    gap: 1em;
+    width: auto;
+    max-width: 30rem;
+    min-width: 20rem;
+    height: 55rem;
+}
+
+#chat-outer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 3;
+    height: 10rem;
+}
+
+#chat-inner {
+    width: 100%;
+    min-height: 5rem;
+    height: 100%;
+    background-color: #2e3338;
+    display: flex;
+    flex-direction: column;
+    padding: 0.3rem;
+    font-size: smaller;
+}
+
+#chat-box {
+    overflow-y: scroll;
+    text-wrap: wrap;
+    background-color: #272b30;
+    padding: 0.2rem;
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+#chat-message-box {
+    width: 100%;
+    min-height: 3rem;
+    height: fit-content;
+    margin-top: auto;
+    background-color: #222222;
+    border-radius: 0 0 5px 5px;
+    padding: 0.2rem;
+    color: #ffffff;
+}
+
+.chat-message {
+    margin: 0.1rem 0.2rem;
+}
+
+@media screen and (max-width: 800px) {
+    footer {
+        justify-content: center;
+    }
+
+    #sidebar {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+#teamSelector {
+    display: flex;
+    flex-direction: column;
+    min-width: 10em;
+    width: 100%;
+    height: fit-content;
+}
+
+#teamSelector-inner {
+    background-color: #2e3338;
+    display: flex;
+    flex-wrap: wrap;
+    min-height: 4rem;
+}
+
+.disconnected {
+    color: #adadad;
+}

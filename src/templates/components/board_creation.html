@@ -1,0 +1,30 @@
+<div class="flex fill">
+    <label>Game:</label>
+    <select id="game" class="creation-width rounded" name="game" oninput="fillGenerators()">
+        {% for game, gens in gameDict.items() %}
+        <option value="{{game}}" data-gens="{{json_encode(gens)}}">{{game}}</option>
+        {% end %}
+    </select>
+</div>
+<div class="flex fill">
+    <label>Generator:</label>
+    <select id="generator" class="creation-width rounded" name="generator">
+        {# Filled at runtime on Game selection. #}
+    </select>
+</div>
+<div class="flex fill">
+    <label>Seed:</label>
+    <input type="text" name="seed" class="creation-width rounded" />
+</div>
+<div class="flex fill">
+    <label>Board Type:</label>
+    <select id="board" class="creation-width rounded" name="board" oninput="fillBoardMeta()">
+        {% for board, meta in boardDict.items() %}
+        <option value="{{board}}" data-meta="{{json_encode(meta)}}">{{board}}</option>
+        {% end %}
+    </select>
+</div>
+<div class="flex-vertical fill">
+    <label style="text-align: center">Board Metadata:</label>
+    <div id="board_meta" class="flex-vertical fill">{# Filled at runtime on Board selection #}</div>
+</div>
