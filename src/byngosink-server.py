@@ -36,7 +36,8 @@ async def ensure_ssl(ctx: ssl.SSLContext | None):
     if ctx is None:
         return
     while True:
-        await asyncio.sleep(10)  # 2 weeks == 604800 * 2, low for debug purposes
+        await asyncio.sleep(604800 * 2)  # 2 weeks - cert expiry is 90 days
+        _log.info("Refreshing certs...")
         ctx.load_cert_chain(*get_chains())
 
 async def main():
