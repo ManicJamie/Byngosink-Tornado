@@ -25,7 +25,7 @@ async def get_ssl_context() -> ssl.SSLContext | None:
     FULLCHAIN, PRIVKEY, PASSWORD = get_chains()
     
     if os.path.exists(FULLCHAIN) and os.path.exists(PRIVKEY):  # Do SSL if the certificates exist, otherwise warn
-        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ssl_context.load_cert_chain(FULLCHAIN, PRIVKEY, PASSWORD)
         return ssl_context
     else:
