@@ -54,7 +54,7 @@ async def main():
     try:
         await Tortoise.init(db_url="sqlite://db.sqlite3", modules={"models": ["models"]})
         await Tortoise.generate_schemas()
-        application.listen(80, ssl_options=SSL_CONTEXT)
+        application.listen(80 if SSL_CONTEXT is None else 443, ssl_options=SSL_CONTEXT)
         await asyncio.Future()  # Pass off control forever
     finally:
         await Tortoise.close_connections()
