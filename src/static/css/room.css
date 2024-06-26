@@ -19,28 +19,6 @@ header {
     flex-direction: column;
 }
 
-h1 {
-    font-size: 2rem !important;
-    margin-top: 0.5rem !important;
-    margin-bottom: 0;
-    line-height: 1rem !important;
-    height: 2rem;
-}
-
-#Exit {
-    margin-left: auto;
-    color: #272b30;
-}
-
-h2 {
-    font-size: 1.25rem !important;
-    margin: 0rem !important;
-}
-
-#titleBar {
-    display: flex;
-}
-
 #board-container {
     aspect-ratio: 1.2 / 1;
     height: 55rem;
@@ -204,7 +182,6 @@ h2 {
     display: flex;
     flex-grow: 1;
     flex-wrap: nowrap;
-    gap: 1em;
     width: auto;
     max-width: 30rem;
     min-width: 20rem;
@@ -273,12 +250,12 @@ h2 {
     height: fit-content;
 }
 
-#teamSelector-inner {
+/* #teamSelector-inner {
     background-color: #2e3338;
     display: flex;
     flex-wrap: wrap;
     min-height: 4rem;
-}
+} */
 
 .disconnected {
     color: #adadad;

@@ -11,6 +11,9 @@ from handlers import HANDLERS, modules
 
 _log = logging.getLogger("byngosink")
 _log.setLevel(logging.INFO)
+stream = logging.StreamHandler()
+stream.formatter = logging.Formatter(fmt=' %(name)s :: %(levelname)-8s :: %(message)s')
+_log.addHandler(logging.StreamHandler())
 
 root = os.path.dirname(__file__)
 

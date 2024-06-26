@@ -19,16 +19,9 @@ body {
     width: 100% !important;
     padding: 0.6em 1em;
     border-bottom: 0.1em solid black;
-    border-radius: 0.25em;
-    border-bottom-right-radius: 0em;
-    border-bottom-left-radius: 0em;
+    border-top-left-radius: 0.25em;
+    border-top-right-radius: 0.25em;
     justify-content: space-between;
-}
-
-.flex {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.5em;
 }
 
 .flex-vertical {

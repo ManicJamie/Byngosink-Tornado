@@ -11,7 +11,6 @@ function fillGenerators() {
 }
 
 function fillBoardMeta() {
-    console.log("running");
     let el = document.getElementById("board");
     el = el.options[el.selectedIndex];
     let metas = JSON.parse(el.getAttribute("data-meta"));
@@ -19,7 +18,7 @@ function fillBoardMeta() {
     let fields = [];
     metas.forEach((meta) => {
         f = document.createElement("div");
-        f.classList.add("flex", "fill");
+        f.classList.add("d-flex", "fill", "justify-content-between");
         let l = document.createElement("l");
         l.textContent = meta;
         let i = document.createElement("input");

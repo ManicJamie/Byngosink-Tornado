@@ -2,12 +2,16 @@ import shortuuid
 import tornado.web
 
 from models import Room
+import models
 
 class RoomHandler(tornado.web.RequestHandler):
     async def get(self, room_id):
         uuid = shortuuid.decode(room_id)
         if ((room := await Room.filter(pk=uuid).first()) is None):
             raise tornado.web.HTTPError(404, "Room not found!")
+        
+        models.ACTIVE_ROOMS[room.short_uuid] = room
+        await room.open()
 
         secret = self.get_cookie("secret")
         if secret is None:

@@ -1,6 +1,9 @@
 import functools
-from typing import TYPE_CHECKING
-from uuid import uuid4
+import logging
+import operator
+import cachetools
+from typing import TYPE_CHECKING, Any
+from uuid import UUID, uuid4
 import shortuuid
 
 import tornado
@@ -8,6 +11,8 @@ import tornado
 from tortoise.models import Model
 from tortoise.fields.base import OnDelete
 from tortoise import fields, transactions
+from tortoise.validators import RegexValidator
+from tortoise.expressions import Q
 
 from generators import Goal, WrappedGenerator
 
@@ -18,6 +23,9 @@ if TYPE_CHECKING:
 
 generate_secret = functools.partial(shortuuid.random, 16)
 
+_log = logging.getLogger("byngosink.models")
+_log.setLevel(logging.DEBUG)
+
 ALL_BOARDS: dict[str, type['boards.BoardEngine']] = None  # type:ignore
 # set by `boards` to avoid recursive import
 
@@ -27,29 +35,66 @@ class GeneratorInfo(Model):
     name = fields.CharField(32)
 
 class Team(Model):  # TODO: uuid/room composite key?
+    """
+    :uuid:
+    :name: Max. 16
+    :colour: Max. 7 (hex colour code)
+    :room:
+    :users: Members of this team
+    """
     uuid = fields.UUIDField(primary_key=True)
-    name = fields.CharField(32)
-    colour = fields.CharField(16)  # TODO: validate prior, shrink field
-    room: fields.ForeignKeyRelation['Room'] = fields.ForeignKeyField("models.Room", "teams")
+    name = fields.CharField(16)
+    colour = fields.CharField(7, validators=[RegexValidator(r"^#[0-9A-F]{6}$", 0)])
+    room: fields.ForeignKeyRelation['Room'] = fields.ForeignKeyField(
+        "models.Room", "teams")
+    
+    goals: fields.ManyToManyRelation['GoalAlias']
     
     users: fields.ReverseRelation['User']
+    
+    async def get_marks(self) -> list[int]:
+        return [g["index"] for g in await self.goals.all().values("index")]
+    
+    @property
+    async def __json__(self) -> dict[str, dict]:
+        return {str(self.uuid): {"name": self.name,
+                                 "colour": self.colour,
+                                 "users": [u.name for u in await self.users.all()]}}
+
+
+SOCKETS: dict[UUID, list['WebsocketHandler']] = {}
+USERS: dict['WebsocketHandler', UUID] = {}  # TODO: doubly linked teardown here to let GC work
 
 class User(Model):
     uuid = fields.UUIDField(primary_key=True)
     name = fields.CharField(16)
     secret = fields.CharField(16, unique=True, default=generate_secret)
-    room = fields.ForeignKeyField("models.Room", "users")
-    team = fields.ForeignKeyField("models.Team", "users", OnDelete.SET_NULL, null=True)
+    room: fields.ForeignKeyRelation['Room'] = fields.ForeignKeyField(
+        "models.Room", "users")
+    team: fields.ForeignKeyRelation['Team'] | None = fields.ForeignKeyField(
+        "models.Team", "users", OnDelete.SET_NULL, null=True)
     
     @property
-    def _sockets(self) -> list['WebsocketHandler']:
-        if "__sockets" not in vars(self):
-            self.__sockets = []
-        return self.__sockets
+    def _sockets(self):
+        if self.uuid not in SOCKETS:
+            SOCKETS[self.uuid] = []
+        return SOCKETS[self.uuid]
     
-    def notify(self, *args):
+    async def sync(self, *,
+                   teams: list[Team] | None = None,
+                   goals: dict[int, dict[str, Any]] | None = None,
+                   marks: dict[str, list[int]] | None = None):
+        kwargs = {}
+        if teams is not None:
+            kwargs["teams"] = {}
+            for t in teams:
+                kwargs["teams"] |= await t.__json__
+        if goals is not None:
+            kwargs["goals"] = goals
+        if marks is not None:
+            kwargs["marks"] = marks
         for socket in self._sockets:
-            socket.write_message({"verb": "NOTIFY"})
+            socket.sync(**kwargs)
 
 class GoalAlias(Model):
     """Goal data required for frontend display (generation metadata removed)
@@ -65,13 +110,18 @@ class GoalAlias(Model):
     index = fields.SmallIntField()
     
     name = fields.TextField()
-    translations = fields.JSONField()
+    translations: dict[str, str] = fields.JSONField()  # type: ignore
     """dict[str, str]"""
     
     teams = fields.ManyToManyField("models.Team", "marks", related_name="goals")
     
     class Meta:  # type:ignore
         unique_together = ("fill", "index")
+    
+    @property
+    async def __json__(self):
+        return {self.index: {"name": self.name,
+                             "translations": self.translations}}
     
     @classmethod
     @transactions.atomic()
@@ -94,13 +144,26 @@ class BoardFill(Model):
     @property
     def engine(self) -> 'boards.BoardEngine':
         if "_engine" not in vars(self):
-            self._engine = self.board_type(self.meta, self)  # type: ignore
+            self._engine = self.board_type(self)  # type: ignore
         return self._engine
     
     @property
     def board_type(self) -> type['boards.BoardEngine']:
         """The type of board."""
         return ALL_BOARDS[self.board_name]
+    
+    async def all_goals(self) -> dict[str, dict[str, str | dict[str, str]]]:
+        await self.fetch_related("goals")
+        return {str(o.index): {"name": o.name,
+                               "translations": o.translations}
+                for o in await self.goals.all()}
+    
+    async def goal_json(self, *indices) -> dict[int, dict[str, str | dict[str, str]]]:
+        await self.fetch_related("goals")
+        index_q: Q = functools.reduce(operator.__or__, [Q(index=i) for i in indices])
+        return {o.index: {"name": o.name,
+                          "translations": o.translations}
+                for o in await self.goals.filter(index_q)}
 
     @classmethod
     async def generate(cls, board_name: str, meta: 'boards.BoardMeta', wrapped_gen: WrappedGenerator, seed: str | None):
@@ -111,6 +174,8 @@ class BoardFill(Model):
                                            wrapped_gen.goals, meta.n, seed))
             return new
 
+
+ACTIVE_ROOMS: cachetools.TTLCache[str, 'Room'] = cachetools.TTLCache(500, 86400)
 
 class Room(Model):
     """Room database model.
@@ -134,6 +199,11 @@ class Room(Model):
     @property
     def requires_password(self): return self.password is not None
     
+    async def open(self):
+        await self.fetch_related("teams", "users", "board_fill")
+        await self.board_fill.fetch_related("goals")
+        ACTIVE_ROOMS[self.short_uuid] = self
+    
     async def join(self, username: str, password: str | None):
         if self.password is not None:
             if self.password != password:
@@ -152,6 +222,7 @@ class Room(Model):
         if user is None:
             raise tornado.web.HTTPError(401, "Secret not recognised; login required.")
         user._sockets.append(socket)
+        socket.sync(**(await self.join_data()))
         return user
 
     def disconnect(self, socket: 'WebsocketHandler'):
@@ -159,4 +230,28 @@ class Room(Model):
             try:
                 user._sockets.remove(socket)
             except ValueError: pass
-            socket.user = None
+        # This socket will close, no socket cleanup required
+    
+    async def join_data(self):
+        out = {}
+        teams = await Team.filter(room=self.uuid)
+        if len(teams) > 0:
+            out["teams"] = functools.reduce(operator.or_, [{}] + [(await t.__json__) for t in teams])
+        out["goals"] = (await (await self.board_fill).engine.get_min_view())["goals"]
+        return out
+    
+    async def sync_teams(self):
+        await tornado.gen.multi([user.sync(teams=await self.teams.all())
+                                 for user in await self.users.all()])
+    
+    async def sync_goals(self, *indices: int):
+        await tornado.gen.multi([user.sync(goals=await (await self.board_fill).goal_json(indices))
+                                 for user in await self.users.all()])
+    
+    async def sync_marks(self, team: Team, all: bool = False):
+        if all:
+            targets = await self.users.all()
+        else:
+            targets = await team.users.all()
+        await tornado.gen.multi([user.sync(marks={str(team.uuid): (await team.get_marks())})
+                                 for user in targets])

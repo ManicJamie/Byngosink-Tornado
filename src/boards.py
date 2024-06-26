@@ -1,10 +1,13 @@
 from typing import Any
+import logging
 
 import models
 
+_log = logging.getLogger("byngosink.boards")
+_log.setLevel(logging.DEBUG)
+
 class BoardMeta(dict):
     """Board metadata base class."""
-    
     @property
     def n(self) -> int:
         """Number of goals to be generated (based on other metadata)"""
@@ -20,44 +23,60 @@ class BasicBoardMeta(BoardMeta):
         # handler should typecheck
 
 class BoardEngine():
-    """The engine used at runtime to assess views, marking & metadata."""
+    """The engine used at runtime to assess views, marking & metadata.
+    
+    Meta is data about the board, Live_meta is extra data generated from the fill."""
     TEMPLATE: str = "basic.html"
     name: str = "Non-Lockout"
-    meta: BasicBoardMeta
     meta_type: type[BoardMeta] = BasicBoardMeta
+    public: bool = True
+    """Whether marks are visible to other teams."""
+    live_meta: dict
     fill: 'models.BoardFill'
     
-    def __init__(self, meta: BasicBoardMeta, fill: 'models.BoardFill') -> None:
-        self.meta = self.meta_type(meta)  # type: ignore
+    def __init__(self, fill: 'models.BoardFill') -> None:
         self.fill = fill
+        self.live_meta = {}
     
-    async def get_full_view_meta(self):
+    def __del__(self):
+        _log.debug("Deleted board engine!")
+    
+    async def get_min_view(self):
+        return await self.get_full_view()  # Non-hidden
+    
+    async def get_live_meta_full(self):
         return {}
     
-    async def get_full_view(self) -> dict[str, Any]:
-        return {"goals": ..., "marks": ...}
+    async def get_live_meta_team(self, team: 'models.Team') -> dict:
+        return {}
     
-    async def get_team_view_meta(self) -> dict:
-        return await self.get_full_view_meta()
+    async def get_full_view(self, reveal: bool = False) -> dict[str, Any]:
+        return {"goals": await self.fill.all_goals(),
+                "marks": {}}
     
     async def get_team_view(self, team: 'models.Team') -> dict[str, Any]:
-        # TODO: passing Team or Team.id here?
-        return await self.get_full_view() | await self.get_team_view_meta()
+        return await self.get_full_view()
+    
+    async def visible(self, team: 'models.Team | None', reveal=False):
+        """Dict [index, SeeAllMarks]"""
+        return {i: True for i in range(len(self.fill.goals))}
     
     async def mark(self, team: 'models.Team', index: int) -> bool:
         goal = await self.fill.goals.filter(index=index).first()
-        if goal is None:
-            return False
+        if goal is None: return False
+        await goal.fetch_related("teams")
         if team in goal.teams:
             return False
+        await goal.teams.add(team)
         return True
     
     async def unmark(self, team: 'models.Team', index: int):
         goal = await self.fill.goals.filter(index=index).first()
         if goal is None:
             return False
-        if team in goal.teams:
+        if team not in await goal.teams:
             return False
+        await goal.teams.remove(team)
         return True
 
 class NonLockout(BoardEngine):

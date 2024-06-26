@@ -1,12 +1,13 @@
-const websocket = new ReconnectingWebSocket((window.location.href + "/ws").replace("board/", ""));
+const websocket = new ReconnectingWebSocket(
+    (window.location.pathname.replace("board", "").replace(/\/+$/, "") + "/ws")
+);
 
-function handleMessage(data) {
-    const event = JSON.parse(data);
-    console.debug(event);
-    if (event.verb == "SYNC") {
+function handleMessage(event) {
+    const data = JSON.parse(event.data);
+    if (data.verb == "SYNC") {
         handleSync(data);
     } else {
-        window.dispatchEvent(new CustomEvent(event.verb, { detail: event.data }));
+        window.dispatchEvent(new CustomEvent("ERROR", {detail: `Unknown verb received: Message ${data}`}));
     }
 }
 
@@ -16,49 +17,60 @@ function send(object) {
 }
 
 function handleSync(data) {
-    if ("teams" in data) {
-        window.dispatchEvent(new CustomEvent("TEAMS", { marks: data.teams })); // dict[int, team]
-    } else if ("goals" in data) {
-        window.dispatchEvent(new CustomEvent("GOALS", { marks: data.goals })); // dict[int, goal]
-    } else if ("marks" in data) {
-        window.dispatchEvent(new CustomEvent("MARKS", { marks: data.marks })); // dict[int, teamId]
-    } else if ("chat" in data) {
-        // window.dispatchEvent(new CustomEvent("MARKS", { marks: data.marks }));
+    if ("CLEAR" in data && data.CLEAR) {
+        window.dispatchEvent(new CustomEvent("CLEAR"));
     }
+    if ("teams" in data) {
+        window.dispatchEvent(new CustomEvent("TEAMS", { detail: data.teams })); // dict[int, team]
+    }
+    if ("goals" in data) {
+        console.debug(data.goals);
+        window.dispatchEvent(new CustomEvent("GOALS", { detail: data.goals })); // dict[int, goal]
+    }
+    if ("marks" in data) {
+        console.debug(data.marks);
+        window.dispatchEvent(new CustomEvent("MARKS", { detail: data.marks })); // dict[int, teamId]
+    }
+    // if ("chat" in data) {
+    //     window.dispatchEvent(new CustomEvent("CHAT", { marks: data.chat }));
+    // }
 
     SYNCED(data.id);
 }
 
 function SYNCED(id) {
-    websocket.send(
-        JSON.stringify({
-            verb: "SYNCED",
-            id: id,
-        })
-    );
+    send({
+        verb: "SYNCED",
+        id: id,
+    });
 }
 
 function MARK(index, mark) {
-    websocket.send(
-        JSON.stringify({
-            verb: "MARK",
-            index: index,
-            mark: mark,
-        })
-    );
+    send({
+        verb: "MARK",
+        index: index,
+        mark: mark,
+    });
 }
 
 function CREATE_TEAM(name, colour) {
-    websocket.send(
-        JSON.stringify({
-            verb: "CREATE_TEAM",
-            name: name,
-            colour: colour,
-        })
-    );
+    send({
+        verb: "CREATE_TEAM",
+        name: name,
+        colour: colour,
+    });
+}
+
+function JOIN_TEAM(uuid) {
+    send({
+        verb: "JOIN_TEAM",
+        uuid: uuid,
+    });
 }
 
 function subscribeWebsocket() {
-    websocket.addEventListener("message", ({ data }) => handleMessage(data));
+    websocket.addEventListener("message", (data) => handleMessage(data));
     websocket.addEventListener("error", (event) => console.error(event));
 }
+
+window.addEventListener("DOMContentLoaded", subscribeWebsocket);

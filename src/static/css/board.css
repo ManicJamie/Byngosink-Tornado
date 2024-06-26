@@ -11,7 +11,6 @@ body {
 #board {
     height: 100%;
     width: 100%;
-    container-type: size;
     background-color: #181818;
     table-layout: fixed;
     border-spacing: 0;
@@ -35,9 +34,32 @@ body {
     position: relative;
 }
 
+.cell-bg {
+    width: 100%;
+    height: 100%;
+}
+
+.bingo-shadow {
+    display: none;
+}
+
+.svg-container:hover .bingo-shadow {
+    display: block;
+}
+
+.bingo-cell-content {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 10;
+    user-select: none;
+    pointer-events: none;
+}
+
 .bingo-col-header-row {
     height: 0.5rem;
     overflow: hidden;
+    width: 1rem;
 }
 
 .bingo-row-header {
@@ -54,10 +76,27 @@ body {
     box-sizing: border-box;
     overflow: hidden;
     border: 1px solid black;
-    text-align: center;
     display: table-cell;
-    text-align: center;
     z-index: 0;
     position: relative;
     padding: 0px;
+}
+
+.svg-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 5;
+}
+
+.bingo-shadow {
+    position:absolute;
+    left:0px;
+    top:0px; 
+    width:100%; 
+    height:100%; 
+    
+    z-index: 2;
 }

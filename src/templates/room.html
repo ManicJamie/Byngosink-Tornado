@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>ByngoSink -</title>
+        <title>{{room.name}}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:title" content="Byngosink" />
         <meta property="og:description" content="{{room.name}}  {{room.password is None}}" />
@@ -18,49 +18,58 @@
             integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
             crossorigin="anonymous"
         />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"/>
+        <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
-        <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.css"
-        />
-        <script src="https://cdn.jsdelivr.net/gh/mdbassit/Coloris@latest/dist/coloris.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
         <script src="{{static_url("js/lib/reconnecting-websocket-min.js")}}"></script>
+        <script src="{{static_url("js/lib/jquery.min.js")}}"></script>
         <script src="{{static_url("js/lib/fittext.js")}}"></script>
+        <link rel="stylesheet" type="text/css" media="screen" href="{{static_url("css/lib/bootstrap-colorpicker.min.css")}}" />
+        <script src="{{static_url("js/lib/bootstrap-colorpicker.min.js")}}"></script>
         <script src="{{static_url("js/websocket.js")}}"></script>
+        <script src="{{static_url("js/room.js")}}"></script>
     </head>
     <body>
+        <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+            <symbol id="exclamation-triangle-fill" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+            </symbol>
+        </svg>
         <div id="container">
-            <div id="error-display" hidden></div>
             <main id="room">
                 <div id="board-container" class="">
-                    <iframe src="/rooms/{{room.short_uuid}}/board"></iframe>
+                    <iframe id="board-iframe" src="/rooms/{{room.short_uuid}}/board"></iframe>
                 </div>
                 <div id="sidebar">
-                    <header class="rounded bordered" style="width: 100%">
-                        <div id="titleBar">
-                            <h1>ByngoSink</h1>
-                            <button id="Exit" class="rounded" onclick="exit()">Exit Room</button>
+                    <header class="rounded bordered mb-2" style="width: 100%">
+                        <div class="d-flex-vertical">
+                            <div class="d-flex nowrap justify-content-between">
+                                <h1 class="mb-auto">ByngoSink</h1>
+                                <button class="btn btn-primary btn-sm ms-auto" data-bs-toggle="modal" data-bs-target="#exitModal">Exit Room</button>
+                            </div>
+                            <h4 class="my-0">{{room.name}}</h4>
                         </div>
-                        <h2 id="roomNameLabel"></h2>
                     </header>
-                    <div id="teamSelector" class="rounded bordered">
+                    <div id="teamSelector" class="rounded bordered mb-2">
                         <div class="window-header">
-                            <div>here is teams</div>
-                            <button
-                                id="teamDialogButton"
-                                class="rounded"
-                                onclick="createTeamDialog()"
-                            >
-                                Add Team
+                            <label class="my-auto">Teams</label>
+                            <button type="button" class="btn btn-primary btn-sm ms-auto me-2" data-bs-toggle="modal" data-bs-target="#teamModal">
+                                Join Team
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#teamCreateModal">
+                                Create Team
                             </button>
                         </div>
-                        <div id="teamSelector-inner" class="rounded"></div>
+                        <div id="teamSelector-inner" class="rounded d-flex flex-wrap ps-1 pt-1">
+                        </div>
                     </div>
+                    <div id="errorAlertPlaceholder"></div>
                     <div id="chat-outer" class="rounded bordered">
                         <div class="window-header">
-                            Chat
-                            <button id="spectateButton" class="rounded" ondblclick="spectate()">
-                                Spectate (dbl click)
+                            <label class="my-auto">Chat</label>
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#spectateModal">
+                                Spectate
                             </button>
                         </div>
                         <div id="chat-inner" class="rounded">
@@ -71,30 +80,8 @@
                         </div>
                     </div>
                 </div>
-                <dialog id="teamDialog" onclick="closeTeamDialog()">
-                    <div id="teamDialog-wrapper" onclick="noPropagate(event)">
-                        Name
-                        <input id="team-name" />
-                        Color
-                        <input
-                            id="team-color"
-                            type="color"
-                            style="position: relative; z-index: 1000"
-                        />
-                        <button id="team-submit" onclick="createTeam()">Create Team</button>
-                    </div>
-                </dialog>
             </main>
-            <main id="login-main" hidden>
-                <div id="login-container">
-                    <div class="flex fill">
-                        <label>Username:</label>
-                        <input type="text" id="username" class="fill rounded" value="TestName" />
-                        <button id="login" onclick="login()">Login</button>
-                    </div>
-                </div>
-            </main>
-            <footer class="flex">
+            <footer class="d-flex justify-content-between">
                 <div>
                     Cell type:
                     <select>
@@ -110,14 +97,92 @@
                     value="Copy Results"
                     onclick="copyResults()"
                 />
-                <div class="flex">
+                <div class="d-flex justify-content-between">
                     <select id="lang-select" onchange="switchLanguage()">
                         <option>en</option>
                     </select>
-                    <a href="https://github.com/ManicJamie/ByngoSink" target="_blank">github</a>
-                    about
+                    <div><a href="https://github.com/ManicJamie/ByngoSink" target="_blank">github</a></div>
+                    <div>about</div>
                 </div>
             </footer>
+        </div>
+        {# All modals #}
+        <div class="modal fade" id="teamCreateModal" tabindex="-1" aria-labelledby="teamCreateModalLabel" aria-hidden="true" data-bs-theme="dark">
+            <div class="modal-dialog">
+              <div class="modal-content text-light">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="teamCreateModalLabel">Create Team</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form onsubmit="submit_team(event)">
+                    <div class="modal-body">
+                        <div class="form-group row">
+                            <label for="inputTeamName" class="col-sm-2 col-form-label">Name</label>
+                            <div class="col-sm-10">
+                                <input type="text" maxlength="16" class="form-control" id="inputTeamName" placeholder="Team Name" required>
+                            </div>
+                            </div>
+                            <div class="form-group row colour-row">
+                                <label for="inputTeamColour" class="col-sm-2 col-form-label my-auto">Colour</label>
+                                <div class="col colour-wrapper py-2">
+                                    <input id="inputTeamColour" type="text" class="form-control input-lg d-none" value="#f00000"/>
+                                </div>
+                            </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Join</button>
+                    </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        <div class="modal fade" id="spectateModal" tabindex="-1" aria-labelledby="spectateModalLabel" aria-hidden="true" data-bs-theme="dark">
+            <div class="modal-dialog">
+                <div class="modal-content text-light">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="spectateModalLabel">Spectate</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                    <div class="modal-body">
+                        <span>Leave your team and spectate?</span>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Spectate All Teams</button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Spectate Full Board</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="exitModal" tabindex="-1" aria-labelledby="exitModalLabel" aria-hidden="true" data-bs-theme="dark">
+            <div class="modal-dialog">
+                <div class="modal-content text-light">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exitModalLabel">Leave Room</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                    <div class="modal-body">
+                        <span>Leave the room? This will log out your other sessions, too!</span>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Leave Room</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="teamModal" tabindex="-1" aria-labelledby="teamModalLabel" aria-hidden="true" data-bs-theme="dark">
+            <div class="modal-dialog">
+              <div class="modal-content text-light">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="teamModalLabel">Join Team</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </div>
         </div>
     </body>
 </html>

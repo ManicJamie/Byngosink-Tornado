@@ -24,16 +24,15 @@ Byngosink provides a few default generator types, accessible under the `Custom` 
 
     A simplistic generator with no line balancing. Supports goal exclusions, tiebreaker goals, weighting, and maximum cost guarantees. Used as a fallback if other generators fail to produce a result.
 
-- SynerGen
-
-    Based on Bingosync's `synerGen.js`, ...
-
-- SRLv5
-
-    Similar but not identical to SRLv5.
-
 ## Stack
 
 Byngosink is run on a sole Tornado web server using Tortoise ORM. Using Tornado to serve the site as well as the WebSocket allows a deep connection between SSG and live WebSocket communications.
 
 Once connected to a room, client actions are triggered by messages over the WebSocket. The server will send out SYNC messages as appropriate to inform the client to update their display. The client responds with SYNCED and the ID of the SYNC message to keep the server informed of all missing data.
+
+### TODO
+
+- Rewrite boards to use a CSS grid layout rather than a table, as they are more flexible and should allow freer control of cell/header dimensions.
+- Generators:
+    - Synergen
+    - SRLv5

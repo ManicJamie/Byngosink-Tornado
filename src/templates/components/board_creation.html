@@ -1,4 +1,4 @@
-<div class="flex fill">
+<div class="d-flex fill justify-content-between">
     <label>Game:</label>
     <select id="game" class="creation-width rounded" name="game" oninput="fillGenerators()">
         {% for game, gens in gameDict.items() %}
@@ -6,17 +6,17 @@
         {% end %}
     </select>
 </div>
-<div class="flex fill">
+<div class="d-flex fill justify-content-between">
     <label>Generator:</label>
     <select id="generator" class="creation-width rounded" name="generator">
         {# Filled at runtime on Game selection. #}
     </select>
 </div>
-<div class="flex fill">
+<div class="d-flex fill justify-content-between">
     <label>Seed:</label>
     <input type="text" name="seed" class="creation-width rounded" />
 </div>
-<div class="flex fill">
+<div class="d-flex fill justify-content-between">
     <label>Board Type:</label>
     <select id="board" class="creation-width rounded" name="board" oninput="fillBoardMeta()">
         {% for board, meta in boardDict.items() %}
