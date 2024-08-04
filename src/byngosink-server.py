@@ -5,15 +5,19 @@ import tornado
 import tornado.websocket
 import tornado.template
 
+import colorama
+
 from tortoise import Tortoise
 
 from handlers import HANDLERS, modules
 
+colorama.just_fix_windows_console()
+
 _log = logging.getLogger("byngosink")
 _log.setLevel(logging.INFO)
 stream = logging.StreamHandler()
-stream.formatter = logging.Formatter(fmt=' %(name)s :: %(levelname)-8s :: %(message)s')
-_log.addHandler(logging.StreamHandler())
+stream.formatter = tornado.log.LogFormatter()
+_log.addHandler(stream)
 
 root = os.path.dirname(__file__)
 

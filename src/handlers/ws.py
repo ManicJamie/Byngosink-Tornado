@@ -10,7 +10,6 @@ import models
 
 _log = logging.getLogger("byngosink.ws")
 _log.setLevel(logging.DEBUG)
-_log.addHandler(logging.StreamHandler())
 
 class WebsocketHandler(tornado.websocket.WebSocketHandler):
     room: models.Room = None  # type: ignore

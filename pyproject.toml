@@ -13,7 +13,8 @@ dependencies = [
     "tortoise-orm==0.21.3",
     "orjson==3.10.5", # Accelerates tortoise JSON fields
     "pyjson5==1.6.6", # Allows commented json for use in generators.
-    "cachetools==5.3.3"
+    "cachetools==5.3.3",
+    "colorama==0.4.6"
 ]
 
 [project.optional-dependencies]

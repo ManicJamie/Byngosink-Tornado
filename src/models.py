@@ -59,7 +59,8 @@ class Team(Model):  # TODO: uuid/room composite key?
     async def __json__(self) -> dict[str, dict]:
         return {str(self.uuid): {"name": self.name,
                                  "colour": self.colour,
-                                 "users": [u.name for u in await self.users.all()]}}
+                                 "users": [{"id": u.uuid, "name": u.name}
+                                           for u in await self.users.all()]}}
 
 
 SOCKETS: dict[UUID, list['WebsocketHandler']] = {}
@@ -130,6 +131,9 @@ class GoalAlias(Model):
                                               translations=g.translations)
                                     for i, g in goals.items())
 
+
+ENGINES: 'dict[UUID, boards.BoardEngine]' = {}
+
 class BoardFill(Model):
     """Persistent data from a filled board."""
     uuid = fields.UUIDField(primary_key=True)
@@ -143,9 +147,10 @@ class BoardFill(Model):
     
     @property
     def engine(self) -> 'boards.BoardEngine':
-        if "_engine" not in vars(self):
-            self._engine = self.board_type(self)  # type: ignore
-        return self._engine
+        eng = ENGINES.get(self.uuid, None)
+        if eng is None:
+            ENGINES[self.uuid] = eng = self.board_type(self)
+        return eng
     
     @property
     def board_type(self) -> type['boards.BoardEngine']:

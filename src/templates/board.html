@@ -18,6 +18,14 @@
         <script src="{{static_url("js/lib/reconnecting-websocket-min.js")}}"></script>
         <script src="{{static_url("js/lib/jquery.min.js")}}"></script>
         <script src="{{static_url("js/lib/textFit.min.js")}}"></script>
+        <script src="{{static_url("js/cellState.js")}}"></script>
+        <script>
+            let self_uuid = "{{user.uuid}}";
+            let cellStates = {};
+            for (let i = 0; i < {{int(board.meta["height"]) * int(board.meta["width"])}}; i++) {
+                cellStates[i] = new CellState();
+            }
+        </script>
         <script src="{{static_url("js/board.js")}}"></script>
         <script src="{{static_url("js/websocket.js")}}"></script>
     </head>
